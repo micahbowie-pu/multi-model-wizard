@@ -14,17 +14,6 @@ require 'json'
 require 'securerandom'
 
 module MultiModelWizard
-
-  class << self
-    def configuration
-      @configuration ||= Config.new
-    end
-
-    def configure
-      yield(configuration)
-    end
-  end
-
   module Wizard
     include Wicked::Wizard
     include MultiModelWizard::CookieStore
