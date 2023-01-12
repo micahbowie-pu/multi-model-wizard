@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 # Modules
-require_relative 'multi_model_wizard/version'
-require_relative 'multi_model_wizard/redis_cookie_store'
-require_relative 'multi_model_wizard/config'
-require_relative 'multi_model_wizard/cookie_store'
-require_relative 'multi_model_wizard/dynamic_validation'
-require_relative 'form_object/base'
+require 'multi_model_wizard/version'
+require 'multi_model_wizard/redis_cookie_store'
+require 'multi_model_wizard/config'
+require 'multi_model_wizard/cookie_store'
+require 'multi_model_wizard/dynamic_validation'
+require 'form_object/base'
 
 # Third party gems
 require 'wicked'

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'multi_model_wizard/config'
-require_relative 'multi_model_wizard/cookie_store'
-require_relative 'multi_model_wizard/wizard'
+require 'multi_model_wizard/config'
+require 'multi_model_wizard/cookie_store'
+require 'multi_model_wizard/wizard'
 
 
 module MultiModelWizard
