@@ -147,7 +147,7 @@ module FormObject
         instance&.send("#{original_attribute}=", self.send(single_attr))
         next if instance.nil?
 
-        validation = validate_attribute_with_message(model_instance: instance, attribute_hash)
+        validation = validate_attribute_with_message(attribute_hash, model_instance: instance)
         if validation[0].eql?(false)
           validation[1].each { |err| self.errors.add(single_attr.to_sym, err) }
         end
@@ -172,7 +172,7 @@ module FormObject
         hash_instance.map do |key, value|
           model_instance&.send("#{key}=", value)
 
-          validation = validate_attribute_with_message(model_instance: model_instance, { "#{key}": value})
+          validation = validate_attribute_with_message({ "#{key}": value }, model_instance: model_instance )
           if validation[0].eql?(false)
             validation[1].each { |err| self.errors.add(attribute.to_sym, err) }
           end
