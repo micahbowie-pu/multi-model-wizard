@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "lib/multi/model/wizard/version"
+require_relative "lib/multi_model_wizard/version"
 
 Gem::Specification.new do |spec|
   spec.name = 'multi-model-wizard'
