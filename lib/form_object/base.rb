@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'activemodel'
+require 'activemodel/activemodel'
 require 'multi_model_wizard/dynamic_validation'
 
 module FormObject
