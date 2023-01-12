@@ -2,7 +2,7 @@
 
 module MultiModelWizard
   module DynamicValidation
-    def valid_attribute?(model_instance:, *attributes)
+    def valid_attribute?(*attributes, model_instance:)
       errors.clear
 
       attributes.flatten!
@@ -22,7 +22,7 @@ module MultiModelWizard
       errors.empty?
     end
 
-    def validate_attribute_with_message(model_instance:, *attributes)
+    def validate_attribute_with_message( *attributes, model_instance:)
       errors.clear
 
       attributes.flatten!
