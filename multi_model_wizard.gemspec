@@ -3,7 +3,7 @@
 require_relative "lib/multi_model_wizard/version"
 
 Gem::Specification.new do |spec|
-  spec.name = 'multi-model-wizard'
+  spec.name = 'multi_model_wizard'
   spec.version = MultiModelWizard::VERSION
   spec.authors = ["micahbowie-pu"]
   spec.email = ["mbowie@meazurelearning.com"]
