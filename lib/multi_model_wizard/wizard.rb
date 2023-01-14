@@ -47,6 +47,10 @@ module MultiModelWizard
       ::MultiModelWizard.configuration.form_key
     end
 
+    def helper_method(method)
+      method
+    end
+
     private
 
     def redis_session_params
@@ -77,10 +81,6 @@ module MultiModelWizard
 
     def set_cookie_session_params(attributes)
       set_signed_cookie(attributes.merge(key: multi_model_wizard_form_key))
-    end
-
-    def helper_method(method)
-      method
     end
   end
 end
