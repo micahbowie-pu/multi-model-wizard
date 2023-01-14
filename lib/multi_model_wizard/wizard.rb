@@ -28,7 +28,7 @@ module MultiModelWizard
     end
 
     def set_session_params(value)
-      store_in_redis? ? set_redis_session_params(value) : set_cookie_session_params
+      store_in_redis? ? set_redis_session_params(value) : set_cookie_session_params(value)
     end
   
     def wizard_form_uuid
@@ -41,7 +41,7 @@ module MultiModelWizard
     end
   
     def multi_model_wizard_form_key
-      MultiModelWizard.configuration.form_key
+      ::MultiModelWizard.configuration.form_key
     end
 
     private

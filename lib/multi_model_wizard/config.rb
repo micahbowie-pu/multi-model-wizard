@@ -1,10 +1,12 @@
 module MultiModelWizard
   class Config
+    FORM_KEY = 'multi_model_wizard_form'.freeze
+
     attr_accessor :store, :form_key
 
     def initialize
       @store = { location: :cookies, redis_instance: nil }
-      @form_key = 'multi_model_wizard_form'
+      @form_key = FORM_KEY
     end
 
     def redis_instance

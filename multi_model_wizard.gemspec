@@ -31,5 +31,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'activemodel', '>= 5.0'
   spec.add_dependency 'activesupport', '>= 5.0'
+  spec.add_dependency 'actionpack', '>= 5.0'
   spec.add_dependency 'wicked', '~> 2.0'
 end
