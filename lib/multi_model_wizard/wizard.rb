@@ -47,7 +47,7 @@ module MultiModelWizard
       ::MultiModelWizard.configuration.form_key
     end
 
-    def helper_method(method)
+    def self.helper_method(method)
       method
     end
 
