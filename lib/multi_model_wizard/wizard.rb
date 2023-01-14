@@ -12,7 +12,7 @@ require 'form_object/base'
 require 'wicked'
 require 'json'
 require 'securerandom'
-require 'activesupport'
+require 'active_support'
 
 module MultiModelWizard
   module Wizard
