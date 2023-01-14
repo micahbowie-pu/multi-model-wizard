@@ -5,6 +5,8 @@ require 'multi_model_wizard/cookie_store'
 require 'multi_model_wizard/wizard'
 
 
+require 'activesupport'
+
 module MultiModelWizard
   module RedisCookieStore
     include CookieStore

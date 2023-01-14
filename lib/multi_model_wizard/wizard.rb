@@ -12,9 +12,12 @@ require 'form_object/base'
 require 'wicked'
 require 'json'
 require 'securerandom'
+require 'activesupport'
 
 module MultiModelWizard
   module Wizard
+    extend ActiveSupport::Concern
+
     include Wicked::Wizard
     include MultiModelWizard::CookieStore
     include MultiModelWizard::RedisCookieStore

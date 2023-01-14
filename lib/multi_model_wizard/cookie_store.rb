@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
+require 'activesupport'
+
 module MultiModelWizard
   module CookieStore
+    extend ActiveSupport::Concern
+
     EXPIRATION = 1.hour
 
     def set_signed_cookie(attributes)
