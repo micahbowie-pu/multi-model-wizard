@@ -78,5 +78,9 @@ module MultiModelWizard
     def set_cookie_session_params(attributes)
       set_signed_cookie(attributes.merge(key: multi_model_wizard_form_key))
     end
+
+    def helper_method(method)
+      method
+    end
   end
 end
