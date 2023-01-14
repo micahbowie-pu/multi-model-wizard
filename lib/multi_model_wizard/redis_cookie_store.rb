@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'multi_model_wizard/config'
 require 'multi_model_wizard/cookie_store'
+require 'multi_model_wizard/config'
 require 'multi_model_wizard/wizard'
 
 
@@ -9,10 +9,10 @@ require 'active_support'
 
 module MultiModelWizard
   module RedisCookieStore
-    include CookieStore
+    include ::MultiModelWizard::CookieStore
 
     def set_redis_cache(key, data, expire: nil)
-      wizard_redis_instance.set(key, data, ex: expire || CookieStore::EXPIRATION)
+      wizard_redis_instance.set(key, data, ex: expire || ::MultiModelWizard::CookieStore::EXPIRATION)
     end
 
     def clear_redis_cache(key)
@@ -26,7 +26,7 @@ module MultiModelWizard
     private
 
     def wizard_redis_instance
-      MultiModelWizard.configuration.redis_instance
+      ::MultiModelWizard.configuration.redis_instance
     end
   end
 end

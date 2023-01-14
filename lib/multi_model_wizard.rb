@@ -12,7 +12,7 @@ require_relative 'form_object/base'
 module MultiModelWizard
   class << self
     def configuration
-      @configuration ||= Config.new
+      @configuration ||= ::MultiModelWizard::Config.new
     end
 
     def configure

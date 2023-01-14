@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 # Modules
-require 'multi_model_wizard/version'
 require 'multi_model_wizard/redis_cookie_store'
-require 'multi_model_wizard/config'
-require 'multi_model_wizard/cookie_store'
 require 'multi_model_wizard/dynamic_validation'
+require 'multi_model_wizard/cookie_store'
+require 'multi_model_wizard/version'
+require 'multi_model_wizard/config'
 require 'form_object/base'
 
 # Third party gems
@@ -16,11 +16,11 @@ require 'active_support'
 
 module MultiModelWizard
   module Wizard
-    extend ActiveSupport::Concern
+    include ::Wicked::Wizard
+    include ::MultiModelWizard::CookieStore
+    include ::MultiModelWizard::RedisCookieStore
 
-    include Wicked::Wizard
-    include MultiModelWizard::CookieStore
-    include MultiModelWizard::RedisCookieStore
+    extend ActiveSupport::Concern
 
     def session_params
       store_in_redis? ? redis_session_params : cookie_session_params
