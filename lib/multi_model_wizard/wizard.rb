@@ -47,10 +47,6 @@ module MultiModelWizard
       ::MultiModelWizard.configuration.form_key
     end
 
-    def self.helper_method(method)
-      method
-    end
-
     private
 
     def redis_session_params
