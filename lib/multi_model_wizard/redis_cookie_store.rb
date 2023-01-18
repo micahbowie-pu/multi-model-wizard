@@ -2,7 +2,6 @@
 
 require 'multi_model_wizard/cookie_store'
 require 'multi_model_wizard/config'
-# require 'multi_model_wizard/wizard'
 
 require 'active_support'
 require 'active_support/core_ext/numeric/time'

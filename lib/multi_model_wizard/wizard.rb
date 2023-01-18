@@ -49,21 +49,21 @@ module MultiModelWizard
     private
 
     def redis_session_params
-    #   JSON.parse(fetch_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}"))
-    # rescue TypeError
-    #   {}
+      JSON.parse(fetch_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}"))
+    rescue TypeError
+      {}
     end
 
     def clear_redis_session_params
-      # clear_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}")
-      # delete_cookie(multi_model_wizard_form_key.to_sym)
+      clear_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}")
+      delete_cookie(multi_model_wizard_form_key.to_sym)
     end
 
     def set_redis_session_params(value)
-      # set_redis_cache(
-      #   "#{multi_model_wizard_form_key}:#{wizard_form_uuid}", 
-      #   value,
-      # )
+      set_redis_cache(
+        "#{multi_model_wizard_form_key}:#{wizard_form_uuid}", 
+        value,
+      )
     end
 
     def cookie_session_params
