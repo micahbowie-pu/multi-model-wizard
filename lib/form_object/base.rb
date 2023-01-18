@@ -234,6 +234,7 @@ module FormObject
     end
 
     def required_for_step?(step)
+      # note: this line is specific if using the wicked gem
       return true if current_step == 'wicked_finish' || current_step.nil?
 
       form_steps.index(step.to_sym) <= form_steps.index(current_step.to_sym)

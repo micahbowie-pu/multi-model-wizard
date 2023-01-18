@@ -6,11 +6,10 @@ require 'multi_model_wizard/dynamic_validation'
 require 'multi_model_wizard/cookie_store'
 require 'multi_model_wizard/version'
 require 'multi_model_wizard/config'
+require 'multi_model_wizard'
 require 'form_object/base'
-# require 'wicked/wizard'
 
 # Third party gems
-# require 'wicked'
 require 'json'
 require 'securerandom'
 require 'active_support'
@@ -19,7 +18,6 @@ module MultiModelWizard
   module Wizard
     extend ActiveSupport::Concern
 
-    # include ::Wicked::Wizard
     include ::MultiModelWizard::CookieStore
     include ::MultiModelWizard::RedisCookieStore
 

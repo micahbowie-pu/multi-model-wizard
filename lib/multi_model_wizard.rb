@@ -18,5 +18,9 @@ module MultiModelWizard
     def configure
       yield(configuration)
     end
+
+    def version
+      ::MultiModelWizard::VERSION
+    end
   end
 end
