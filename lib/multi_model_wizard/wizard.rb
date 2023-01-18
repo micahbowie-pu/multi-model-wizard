@@ -19,7 +19,7 @@ module MultiModelWizard
     extend ActiveSupport::Concern
 
     include ::MultiModelWizard::CookieStore
-    include ::MultiModelWizard::RedisCookieStore
+    # include ::MultiModelWizard::RedisCookieStore
 
     def session_params
       store_in_redis? ? redis_session_params : cookie_session_params
@@ -49,21 +49,21 @@ module MultiModelWizard
     private
 
     def redis_session_params
-      JSON.parse(fetch_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}"))
-    rescue TypeError
-      {}
+    #   JSON.parse(fetch_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}"))
+    # rescue TypeError
+    #   {}
     end
 
     def clear_redis_session_params
-      clear_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}")
-      delete_cookie(multi_model_wizard_form_key.to_sym)
+      # clear_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}")
+      # delete_cookie(multi_model_wizard_form_key.to_sym)
     end
 
     def set_redis_session_params(value)
-      set_redis_cache(
-        "#{multi_model_wizard_form_key}:#{wizard_form_uuid}", 
-        value,
-      )
+      # set_redis_cache(
+      #   "#{multi_model_wizard_form_key}:#{wizard_form_uuid}", 
+      #   value,
+      # )
     end
 
     def cookie_session_params
