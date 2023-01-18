@@ -17,11 +17,11 @@ require 'active_support'
 
 module MultiModelWizard
   module Wizard
+    extend ActiveSupport::Concern
+
     include ::Wicked::Wizard
     include ::MultiModelWizard::CookieStore
     include ::MultiModelWizard::RedisCookieStore
-
-    extend ActiveSupport::Concern
 
     def session_params
       store_in_redis? ? redis_session_params : cookie_session_params
