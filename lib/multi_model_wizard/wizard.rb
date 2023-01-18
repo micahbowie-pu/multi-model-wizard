@@ -19,7 +19,7 @@ module MultiModelWizard
     extend ActiveSupport::Concern
 
     include ::MultiModelWizard::CookieStore
-    # include ::MultiModelWizard::RedisCookieStore
+    include ::MultiModelWizard::RedisCookieStore
 
     def session_params
       store_in_redis? ? redis_session_params : cookie_session_params
