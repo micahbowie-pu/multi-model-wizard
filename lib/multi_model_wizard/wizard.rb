@@ -48,6 +48,10 @@ module MultiModelWizard
 
     private
 
+    def store_in_redis?
+      ::MultiModelWizard.configuration.store_in_redis?
+    end
+
     def redis_session_params
       JSON.parse(fetch_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}"))
     rescue TypeError
