@@ -43,6 +43,7 @@ module FormObject
       @dynamic_models = []
       @multiple_instance_models = []
       @extra_attributes = []
+      @new_form = true
     end
 
     # Needs to be overridden by child class.
