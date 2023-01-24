@@ -29,6 +29,7 @@ module FormObject
       end
     end
 
+    # These are the default atrributes for all form objects
     ATTRIBUTES = %i[
       current_step
       new_form
@@ -36,6 +37,9 @@ module FormObject
 
     attr_reader :extra_attributes, :models, :dynamic_models, :multiple_instance_models
 
+    # WARNING: Light meta programming
+    # We will create an attr_accessor for all atributes
+    # @note This ATTRIBUTES can be overriden in child classes
     ATTRIBUTES.each { |attribute| attr_accessor attribute }
 
     def initialize
@@ -215,6 +219,14 @@ module FormObject
       @dynamic_models << hash
     end
 
+    # The add_multiple_instance_model is an instance method that is used for adding ActiveRecord models
+    # multiple instance models are models that would be child models in a has_many belongs_to relationship
+    # EXAMPLE: Car has_many parts
+    # In this example the multiple instance would be parts because a car can have an infinte number of parts
+    # @param name of the form object atrribute to retrieve these multiple instances of a model [String]
+    # @param model class or instance [ActiveRecord] this is the same model that the instances should be
+    # @param instances is an array of ActiveRecord models [Array] these are usually the has_many relation instances
+    # @return array of all the multiple instance models models [Array]
     def add_multiple_instance_model(attribute_name: nil, model:, instances: [])
       attribute_name = attribute_name || model_prefix(model, pluralize: true)
       hash = { attribute_name: attribute_name, model: instance_of_model(model), instances: instances }
@@ -222,18 +234,27 @@ module FormObject
       @multiple_instance_models << hash
     end
 
-    def add_model(model, prefix: nil)
-      hash = { prefix: prefix || model_prefix(model), model: instance_of_model(model) }
+    # The add_model is an instance method that is used for adding ActiveRecord models
+    # @param prefix is optional and is used to change the prefix of the models attributes [String] the prefix defaults to the model name
+    # @param model class or instance [ActiveRecord] this is the same model that the instances should be
+    # @return array of all the models [Array]
+    def add_model(model, prefix:  model_prefix(model))
+      hash = { prefix: prefix, model: instance_of_model(model) }
 
       @models << hash
     end
 
+    # This method is used to turn the attributes of the form into a stringified object that resembles json
+    # @return form atttrubytes as a strigified hash [Hash]
     def as_json
       instance_variables.each_with_object({}) do |var, obj|
           obj[var.to_s.gsub('@','')] = instance_variable_get(var)
       end.stringify_keys
     end
 
+    # This method is used to help validate the form object. Use required for step to do step contional validations of attributes
+    # @param step is used to compare the current step [Symbol]
+    # @return a true or false value if the step give is equal to or smaller in the form_steps [Boolean]
     def required_for_step?(step)
       # note: this line is specific if using the wicked gem
       return true if current_step == 'wicked_finish' || current_step.nil?
@@ -241,21 +262,86 @@ module FormObject
       form_steps.index(step.to_sym) <= form_steps.index(current_step.to_sym)
     end
 
-    private
-
-    def add_attribute(attribute_sym)
-      ATTRIBUTES << attribute_sym
-      self.class.send(:attr_accessor, attribute_sym)
+    # Persist is used to update or create all of the models from the form object
+    # @note the create method and update method that this method use will have to manually implemented by the child class
+    # @note the create and update need to return a boolean based on their success or failure to udpate
+    # @return the output of the create or update method [Sybmbol]
+    def persist!
+      new_form ? create : update
     end
 
+    # Create all of the models from the form object and their realations
+    # @note this should be done in an ActiveRecord transaction block
+    # @return returns true if the transaction was successfule and false if not[Boolean]
+    # EXAMPLE:
+    # def create
+    #   created = false
+    #   begin
+    #     ActiveRecord::Base.transaction do
+    #       car = Car.new(attributes_for(Car))
+    #       car.parts = car_parts
+    #       car.save!
+    #     end
+    #     created = true
+    #   rescue StandardError => err
+    #     return created       
+    #   end
+    #   created
+    # end
+    def create
+      true
+    end
+
+    # Update all of the models from the form object and their realations
+    # @note this should be done in an ActiveRecord transaction block
+    # @return returns true if the transaction was successfule and false if not [Boolean]
+    # EXAMPLE:
+    # def update
+    #   updated = false
+    #   begin
+    #     ActiveRecord::Base.transaction do
+    #       car = Car.find(car_id)
+    #       car.attributes = attributes_for(Car)
+    #       car.parts = car_parts
+    #       car.save!
+    #     end
+    #     updated = true
+    #   rescue StandardError => err
+    #     return updated       
+    #   end
+    #   updated
+    # end
+    def update
+      true
+    end
+
+    private
+
+    # WARNING: Light meta programming
+    # Used to add attributes to the ATTRIBUTES array and also create an attr_accessor for those attributes
+    # This is used to add model attributes to the form object
+    # @param attribute name [Symbol]
+    # @return method name [Sybmbol]
+    def add_attribute(attribute_name)
+      ATTRIBUTES << attribute_name
+      self.class.send(:attr_accessor, attribute_name)
+    end
+
+    # Used on the last step of a form wizard
+    # @note this model will invalidate the form object is the persist! method does not return true
+    # @return if all models were saved than true will be returned [Boolean]
     def models_persisted?
       persist! ? true : errors.add(:associated_model, 'could not be properly save')
     end
 
+    # Returns all types of models including, dynamic models, multi instance models, etc
+    # @return all models [Array]
     def all_models
       @all_models = (models + dynamic_models + multiple_instance_models).uniq
     end
 
+    # This method is used to make sure the form object has an attr_accessor for all of the models that
+    # were provided. This method is used during the initialization of a new form object instance.
     def init_attributes
       # get all model attributes and prefix them 
       all_models.each do |hash|
@@ -289,6 +375,8 @@ module FormObject
       @extra_attributes = []
     end
 
+    # This method is used to make sure the form object has an attr_accessor for all of the multiple instance attributes 
+    # This method is used during the initialization of a new form object instance.
     def init_multiple_instance_attributes
       multiple_instance_models.each do |model_hash|
         add_attribute(model_hash[:attribute_name].to_sym)
@@ -301,6 +389,8 @@ module FormObject
       end
     end
 
+    # This method is used to make sure the form object has an attr_accessor for all of the extra attributes 
+    # This method is used during the initialization of a new form object instance.
     def init_extra_attributes
       @extra_attribute_keys = []
       extra_attributes.each do |attr_object|
@@ -323,6 +413,10 @@ module FormObject
       end
     end
 
+    # Set attribute history updates the attrube_lookup object
+    # @param prefix is the attribute prefix [String] the prefix the form_object gave this attribute
+    # @param key is name of the original method from the model [String]
+    # @param model ActiveRecord class of the method [ActiveRecord]
     def set_attribute_history(prefix=nil, key, model)
       if prefix
         attribute_lookup.merge!("#{prefix}_#{key}": { original_method: key, model: instance_of_model(model).class.name })
@@ -331,6 +425,9 @@ module FormObject
       end 
     end
 
+    # This method is reponsible for taking an ActiveRecord class and turning it into snake cased prefix
+    # @param pluralize determines if the prefix is going to be plural or not [Boolean]
+    # @param model ActiveRecord class [ActiveRecord]
     def model_prefix(model, pluralize: false)
       if pluralize
         instance_of_model(model).class.name.pluralize.gsub('::','_').underscore
@@ -339,10 +436,21 @@ module FormObject
       end
     end
 
+    # Instance of model gives the DSL the flexibility to have an instance of an ActiveRecord class or the class it self.
+    # This method will take an argument of either an ActiveRecord class instance or class definiton and return the an instance
+    # @param model ActiveRecord class or instance [ActiveRecord]
+    # @return ActiveRecord model instance [ActiveRecord]
     def instance_of_model(model)
       model.respond_to?(:new) ? model.new : model
     end
 
+    # The attribute lookup method is a hash that has the form object attribute as a key and the history of that atrribute as the value
+    # EXAMPLE:
+    # {
+    #   car_color: { original_method: 'color', model: 'Car' }
+    # }
+    # 
+    # @return hash [Hash]
     def attribute_lookup
       @attribute_lookup ||= {}
     end

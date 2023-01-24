@@ -9,6 +9,9 @@ module MultiModelWizard
 
     EXPIRATION = 1.hour
 
+    # This method is used to set the session cookie on the browser
+    # EXAMPLE:
+    # set_signed_cookie(key: 'multi_model_wizard_form', value: { hello: 'world' })
     def set_signed_cookie(attributes)
       cookies.signed[attributes[:key]&.to_sym] = {
         value: attributes[:value],
@@ -19,10 +22,12 @@ module MultiModelWizard
       }
     end
 
+    # This method is used to retrieve the session cookie from the browser
     def get_signed_cookie(key)
       cookies.signed[key.to_sym]
     end
 
+    # This method is used to delete the session cookie from the browser
     def delete_cookie(key)
       cookies.delete(key.to_sym)
     end
