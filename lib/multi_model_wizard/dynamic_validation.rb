@@ -2,6 +2,10 @@
 
 module MultiModelWizard
   module DynamicValidation
+    # Validates attributes using the original model and returns boolean for the given attributes
+    # @params attributes are the names of the form objects methods [Symbol]
+    # @params model_instance is the original model that the form object got the attributes from [ActiveRecord]
+    # @returns returns boolean if the model has no errors [Boolean]
     def valid_attribute?(*attributes, model_instance:)
       errors.clear
 
@@ -22,6 +26,10 @@ module MultiModelWizard
       errors.empty?
     end
 
+    # Validates attributes using the original model and returns a boolean and a message for the given attributes
+    # @params attributes are the names of the form objects methods [Symbol]
+    # @params model_instance is the original model that the form object got the attributes from [ActiveRecord]
+    # @returns returns boolean if the model has no errors [Boolean]
     def validate_attribute_with_message( *attributes, model_instance:)
       errors.clear
 
