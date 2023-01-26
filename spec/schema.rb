@@ -5,6 +5,7 @@ ActiveRecord::Schema.define do
     t.string :note
     t.string :kind
     t.integer :manufacturer_id
+    t.integer :wheels
 
     t.timestamps
   end
