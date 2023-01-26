@@ -7,7 +7,7 @@ module MultiModelWizard
     # @params model_instance is the original model that the form object got the attributes from [ActiveRecord]
     # @returns returns boolean if the model has no errors [Boolean]
     def valid_attribute?(*attributes, model_instance:)
-      errors.clear
+      model_instance.errors.clear
 
       attributes.flatten!
       attributes = attributes.first if attributes.first.is_a?(Hash)
@@ -23,7 +23,7 @@ module MultiModelWizard
         validators.each { |validator| validator.validate(model_instance) }
       end
 
-      errors.empty?
+      model_instance.errors.empty?
     end
 
     # Validates attributes using the original model and returns a boolean and a message for the given attributes
@@ -31,7 +31,7 @@ module MultiModelWizard
     # @params model_instance is the original model that the form object got the attributes from [ActiveRecord]
     # @returns returns boolean if the model has no errors [Boolean]
     def validate_attribute_with_message( *attributes, model_instance:)
-      errors.clear
+      model_instance.errors.clear
 
       attributes.flatten!
       attributes = attributes.first if attributes.first.is_a?(Hash)
@@ -42,7 +42,7 @@ module MultiModelWizard
         validators.each { |validator| validator.validate(model_instance) }
       end
 
-      return errors.empty?, errors.full_messages.uniq
+      return model_instance.errors.empty?, model_instance.errors.full_messages.uniq
     end
   end
 end
