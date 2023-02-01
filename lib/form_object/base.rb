@@ -4,6 +4,7 @@ require 'active_model'
 require 'multi_model_wizard/dynamic_validation'
 
 module FormObject
+  class AttributeNameError < StandardError; end
   class Base
     include MultiModelWizard::DynamicValidation
     include ActiveModel::Model
@@ -13,7 +14,7 @@ module FormObject
       # Creates a new instance of the form object with all models and configuration
       # @note This is how all forms should be instantiated
       # @param block [Block] this yields to a block with an instance of its self
-      # @return form object [Wizards::FormObjects::Base]
+      # @return form object [FormObjects::Base]
       def create_form
         instance = new
         yield(instance)
@@ -42,6 +43,8 @@ module FormObject
     # @note This ATTRIBUTES can be overriden in child classes
     ATTRIBUTES.each { |attribute| attr_accessor attribute }
 
+    alias new_form? new_form 
+
     def initialize
       @models = []
       @dynamic_models = []
@@ -50,32 +53,25 @@ module FormObject
       @new_form = true
     end
 
-    # Needs to be overridden by child class.
-    # @note This method needs to be overridden with your custom logic to create or update models from the form 
-    # @note This method needs return a boolean after attempting to create the records 
-    # @return boolean [Bolean] returns true if all model changes/creation persisted
-    def persist!
-      raise NotImplementedError
-    end
-
     # Checks if the form and its attributes are valid
     # @note This method is here because the Wicked gem automagically runs this methdo to move to the next step
     # @note This method needs return a boolean after attempting to create the records 
     # @return boolean [Boolean]
     def save
-      self.valid?
+      valid?
     end
 
     # Add a custom error message and makes the object invalid
     #
-    def invalidate!(errors_msg)
-      errors.add(:associated_model, errors_msg)
+    def invalidate!(error_msg = nil)
+      errors.add(:associated_model, error_msg) unless error_msg.nil?
       errors.add(:associated_model, 'could not be properly save')
     end
 
     # Boolean method returns if the object is on the first step or not
     # @return boolean [Boolean]
     def first_step?
+      return false if current_step.nil?
       return true unless current_step.to_sym
 
       form_steps.first == current_step.to_sym
@@ -87,7 +83,7 @@ module FormObject
     # @return hash [ActiveSupport::HashWithIndifferentAccess]
     def attributes
       hash = ActiveSupport::HashWithIndifferentAccess.new
-      self.instance_variables.each_with_object(hash) do |attribute, object|
+      instance_variables.each_with_object(hash) do |attribute, object|
         next if %i[@errors @validation_context 
                   @models @dynamic_models
                   @multiple_instance_models
@@ -110,6 +106,8 @@ module FormObject
     # @param model class [ActiveRecord]
     # @return hash [Hash]
     def attributes_for(model)
+      model_is_activerecord?(model)
+
       hash = ActiveSupport::HashWithIndifferentAccess.new
       
       attribute_lookup.each_with_object(hash) do |value, object|
@@ -145,19 +143,25 @@ module FormObject
     # @param symbol names of instance methods [Symbol]
     # @return boolean [Boolean] this method will return true if all attributes are valid and false if not
     def validate_attributes(*attributes)
+      raise ArgumentError, 'Attributes must be a Symbol' unless attributes.all? { |x| x.is_a?(Symbol) }
+
       attributes.map do |single_attr|
+        unless respond_to?(single_attr)
+          raise FormObject::AttributeNameError, "#{single_attr.to_s} is not a valid attribute of this form object"
+        end
+
         original_attribute = attribute_lookup.dig(single_attr.to_sym, :original_method)
-        attribute_hash = { "#{original_attribute}": self.send(single_attr) }
+        attribute_hash = { "#{original_attribute}": send(single_attr) }
         instance = attribute_lookup.dig(single_attr.to_sym, :model)&.constantize&.new
-        instance&.send("#{original_attribute}=", self.send(single_attr))
+        instance&.send("#{original_attribute}=", send(single_attr))
         next if instance.nil?
 
         validation = validate_attribute_with_message(attribute_hash, model_instance: instance)
-        if validation[0].eql?(false)
-          validation[1].each { |err| self.errors.add(single_attr.to_sym, err) }
+        if validation.valid.eql?(false)
+          validation.messages.each { |err| errors.add(single_attr.to_sym, err) }
         end
 
-        validation[0]
+        validation.valid
       end.compact.all?(true)
     end
 
@@ -170,18 +174,23 @@ module FormObject
     # @param symbol name of instance method [Symbol]
     # @return boolean [Boolean] this method will return true if all attributes are valid and false if not
     def validate_multiple_instance_model(attribute)
+      raise ArgumentError, 'Attribute must be a Symbol' unless attribute.is_a?(Symbol)
+      unless respond_to?(attribute)
+        raise FormObject::AttributeNameError, "#{attribute.to_s} is not a valid attribute of this form object"
+      end
+
       model_instance = attribute_lookup.dig(attribute.to_sym, :model)&.constantize&.new
       return nil if model_instance.nil?
 
-      self.send(attribute).map do |hash_instance|
+      send(attribute).map do |hash_instance|
         hash_instance.map do |key, value|
           model_instance&.send("#{key}=", value)
 
           validation = validate_attribute_with_message({ "#{key}": value }, model_instance: model_instance )
-          if validation[0].eql?(false)
-            validation[1].each { |err| self.errors.add(attribute.to_sym, err) }
+          if validation.valid.eql?(false)
+            validation.messages.each { |err| errors.add(attribute.to_sym, err) }
           end
-          validation[0]
+          validation.valid
         end
       end.compact.all?(true)
     end
@@ -196,6 +205,12 @@ module FormObject
     # @param model class or model instance  [ActiveRecord] this is the class that you want these extra attributes to be related to
     # @return array of all the extra attributes [Array]
     def add_extra_attributes(prefix: nil, attributes:, model: nil )
+      if prefix.present?
+        raise ArgumentError, 'Prefix must be a String' unless prefix.is_a?(String)
+      end
+      raise ArgumentError, 'All attributes must be Symbols' unless attributes.all? { |x| x.is_a?(Symbol) }
+      model_is_activerecord?(model)
+
       hash = { 
               prefix: prefix || model_prefix(model), 
               attributes: attributes,
@@ -214,9 +229,10 @@ module FormObject
     # @param model class or model instance  [ActiveRecord] this is the class that you want these extra attributes to be related to
     # @return array of all the dynamic models [Array]
     def add_dynamic_model(prefix:, model:)
-      hash = { prefix: prefix, model: instance_of_model(model) }
+      raise ArgumentError, 'Prefix must be a String' unless prefix.is_a?(String)
+      model_is_activerecord?(model)
 
-      @dynamic_models << hash
+      @dynamic_models << { prefix: prefix, model: instance_of_model(model) }
     end
 
     # The add_multiple_instance_model is an instance method that is used for adding ActiveRecord models
@@ -228,6 +244,11 @@ module FormObject
     # @param instances is an array of ActiveRecord models [Array] these are usually the has_many relation instances
     # @return array of all the multiple instance models models [Array]
     def add_multiple_instance_model(attribute_name: nil, model:, instances: [])
+      if attribute_name.present? 
+        raise ArgumentError, 'Attribute name must be a String' unless attribute_name.is_a?(String)
+      end
+      model_is_activerecord?(model)
+
       attribute_name = attribute_name || model_prefix(model, pluralize: true)
       hash = { attribute_name: attribute_name, model: instance_of_model(model), instances: instances }
 
@@ -238,8 +259,13 @@ module FormObject
     # @param prefix is optional and is used to change the prefix of the models attributes [String] the prefix defaults to the model name
     # @param model class or instance [ActiveRecord] this is the same model that the instances should be
     # @return array of all the models [Array]
-    def add_model(model, prefix:  model_prefix(model))
-      hash = { prefix: prefix, model: instance_of_model(model) }
+    def add_model(model, prefix: nil)
+      if prefix.present?
+        raise ArgumentError, 'Prefix must be a String' unless prefix.is_a?(String)
+      end
+      model_is_activerecord?(model)
+
+      hash = { prefix: prefix || model_prefix(model), model: instance_of_model(model) }
 
       @models << hash
     end
@@ -442,6 +468,18 @@ module FormObject
     # @return ActiveRecord model instance [ActiveRecord]
     def instance_of_model(model)
       model.respond_to?(:new) ? model.new : model
+    end
+
+    def class_for(model)
+      model.respond_to?(:new) ? model : model.class
+    end
+
+    def model_is_activerecord?(model)
+      return if model.nil?
+
+      unless class_for(model).ancestors.include?(ActiveRecord::Base)
+        raise ArgumentError, 'Model must be an ActiveRecord descendant'
+      end
     end
 
     # The attribute lookup method is a hash that has the form object attribute as a key and the history of that atrribute as the value
