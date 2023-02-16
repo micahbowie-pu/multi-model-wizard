@@ -21,6 +21,8 @@ module MultiModelWizard
     include ::MultiModelWizard::CookieStore
     include ::MultiModelWizard::RedisCookieStore
 
+    attr_reader :form_id
+
     # This gets the form data from the session cookie or redis depending on whats configured
     def session_params
       store_in_redis? ? redis_session_params : cookie_session_params
@@ -39,9 +41,13 @@ module MultiModelWizard
     # Wizard form uuid will attempt to get the uuid from the browser session cookie
     # If one is not there it will set a new session cookie with the uuid as teh value
     def wizard_form_uuid
-      key = multi_model_wizard_form_key.to_sym
+      key = if form_id
+        "#{multi_model_wizard_form_key}#{form_id}".to_sym
+      else
+        multi_model_wizard_form_key
+      end
       return get_signed_cookie(key) if get_signed_cookie(key).present?
-  
+
       @uuid ||= SecureRandom.uuid
       set_signed_cookie(key: key, value: @uuid)
       @uuid
