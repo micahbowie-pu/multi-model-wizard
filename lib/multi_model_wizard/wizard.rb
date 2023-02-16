@@ -40,13 +40,13 @@ module MultiModelWizard
     # If one is not there it will set a new session cookie with the uuid as teh value
     def wizard_form_uuid
       key = multi_model_wizard_form_key.to_sym
-      if get_signed_cookie(key).present?
-        get_signed_cookie(key)
-      else
-        @uuid ||= SecureRandom.uuid
-        set_signed_cookie(key: key, value: @uuid)
-        @uuid
-      end
+      # if get_signed_cookie(key).present?
+      get_signed_cookie(key)
+      # else
+      #   @uuid ||= SecureRandom.uuid
+      #   set_signed_cookie(key: key, value: @uuid)
+      #   @uuid
+      # end
     end
 
     # Reference the form key that was passed in from the initializer
