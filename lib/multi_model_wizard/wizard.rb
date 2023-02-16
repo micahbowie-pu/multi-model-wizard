@@ -41,15 +41,10 @@ module MultiModelWizard
     # Wizard form uuid will attempt to get the uuid from the browser session cookie
     # If one is not there it will set a new session cookie with the uuid as teh value
     def wizard_form_uuid
-      key = if form_id
-        "#{multi_model_wizard_form_key}#{form_id}".to_sym
-      else
-        multi_model_wizard_form_key
-      end
-      return get_signed_cookie(key) if get_signed_cookie(key).present?
+      return get_signed_cookie(wizard_form_key) if get_signed_cookie(wizard_form_key).present?
 
       @uuid ||= SecureRandom.uuid
-      set_signed_cookie(key: key, value: @uuid)
+      set_signed_cookie(key: wizard_form_key, value: @uuid)
       @uuid
     end
 
@@ -60,6 +55,14 @@ module MultiModelWizard
 
     private
 
+    def wizard_form_key
+      if form_id
+        "#{multi_model_wizard_form_key}#{form_id}".to_sym
+      else
+        multi_model_wizard_form_key.to_sym
+      end
+    end
+
     # Logical methods to determine where the gem should store form data
     def store_in_redis?
       ::MultiModelWizard.configuration.store_in_redis?
@@ -67,33 +70,33 @@ module MultiModelWizard
 
     # This method is used to retrieve the form data from redis
     def redis_session_params
-      JSON.parse(fetch_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}"))
+      JSON.parse(fetch_redis_cache("#{wizard_form_key.to_s}:#{wizard_form_uuid}"))
     rescue TypeError
       {}
     end
 
     def clear_redis_session_params
-      clear_redis_cache("#{multi_model_wizard_form_key}:#{wizard_form_uuid}")
+      clear_redis_cache("#{wizard_form_key.to_s}:#{wizard_form_uuid}")
       delete_cookie(multi_model_wizard_form_key.to_sym)
     end
 
     def set_redis_session_params(value)
       set_redis_cache(
-        "#{multi_model_wizard_form_key}:#{wizard_form_uuid}", 
+        "#{wizard_form_key.to_s}:#{wizard_form_uuid}", 
         value,
       )
     end
 
     def cookie_session_params
-      get_signed_cookie(multi_model_wizard_form_key)
+      get_signed_cookie(wizard_form_key.to_s)
     end
 
     def clear_cookie_session_params
-      delete_cookie(key)
+      delete_cookie(multi_model_wizard_form_key.to_sym)
     end
 
     def set_cookie_session_params(attributes)
-      set_signed_cookie(attributes.merge(key: multi_model_wizard_form_key))
+      set_signed_cookie(attributes.merge(key: wizard_form_key.to_s))
     end
   end
 end
